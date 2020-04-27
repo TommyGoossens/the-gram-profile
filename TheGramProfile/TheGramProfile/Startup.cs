@@ -5,7 +5,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
+using TheGramPost.Helpers;
 using TheGramProfile.Repository;
+using TheGramProfile.Services;
 
 namespace TheGramProfile
 {
@@ -23,7 +25,8 @@ namespace TheGramProfile
         {
             services.AddFirebaseAuthentication(Configuration["Firebase:Issuer"], Configuration["Firebase:Audience"]);
             services.AddMemoryCache();
-            
+            services.AddScoped<IProfileService, ProfileService>();
+            services.AddScoped<IUserContextHelper, UserContextHelper>();
             services.AddHttpContextAccessor();
             services.AddDbContext<ProfileContext>(builder =>
             {
