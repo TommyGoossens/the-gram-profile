@@ -1,6 +1,6 @@
-namespace TheGramProfile.Properties.Models.DTO
+namespace TheGramProfile.Domain.Models.DTO
 {
-    public class CreateProfileDTO
+    public class CreateProfileRequest
     {
         public string Username { get; set; }
         public string Email { get; set; }

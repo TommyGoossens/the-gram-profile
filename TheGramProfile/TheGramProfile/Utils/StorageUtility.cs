@@ -44,7 +44,7 @@ namespace TheGramProfile
             try
             {
                 File.Delete(path.Name);
-                path.DisposeAsync();
+                await path.DisposeAsync();
             }
             catch (ArgumentNullException e)
             {

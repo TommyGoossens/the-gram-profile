@@ -1,10 +1,9 @@
 using System;
 using System.Threading.Tasks;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using NLog;
-using TheGramProfile.Properties.Models;
-using TheGramProfile.Properties.Models.DTO;
-using TheGramProfile.Services;
+using TheGramProfile.Domain.Query.GetProfile;
 
 namespace TheGramProfile.Controllers
 {
@@ -12,27 +11,17 @@ namespace TheGramProfile.Controllers
     {
 
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-        private readonly IProfileService _profileService;
-        public ProfileController(IProfileService profileService)
+        private readonly IMediator _mediator;
+        public ProfileController(IMediator mediator)
         {
-            _profileService = profileService;
+            _mediator = mediator;
         }
         [HttpGet("{userId}")]
-        public async Task<UserProfile> GetProfile(string userId)
+        public async Task<IActionResult> GetProfile(string userId)
         {
-            return await _profileService.GetUser(userId);
-
-        }
-
-        [HttpPost("{userId}")]
-        public async Task<ActionResult> CreateProfile(string userId, [FromBody] CreateProfileDTO createProfileDto)
-        {
-            UserProfile createdProfile = new UserProfile
-            {
-                UserName = createProfileDto.Username,
-                Email = createProfileDto.Email
-            };
-            return new OkResult();
+            var result = await _mediator.Send(new GetProfileQuery(userId));
+            if(result == null) return new NotFoundResult();
+            return new OkObjectResult(result);
         }
 
         [HttpPut("{userId}")]
