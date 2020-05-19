@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace TheGramPost.Helpers
+namespace TheGramProfile.Helpers
 {
     public interface IUserContextHelper
     {

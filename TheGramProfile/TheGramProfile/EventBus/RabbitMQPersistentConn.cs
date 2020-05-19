@@ -69,7 +69,6 @@ namespace TheGramPost.EventBus
 
         public IModel CreateModel()
         {
-            Logger.Info("Creating model");
             if (IsConnected) return _connection.CreateModel();
             Logger.Error("No RabbitMQ connections are available to allow the creation of a model");
             throw new InvalidOperationException("No RabbitMQ connections are available to allow the creation of a model");

@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
+using TheGramProfile.Domain.Models.DTO;
 
-namespace TheGramProfile.Domain.Models.DTO
+namespace TheGramProfile.Domain.DTO.Response
 {
     public class ProfileResponse
     {

@@ -1,4 +1,5 @@
 using MediatR;
+using TheGramProfile.Domain.DTO.Response;
 using TheGramProfile.Domain.Models.DTO;
 
 namespace TheGramProfile.Domain.Query.GetProfile

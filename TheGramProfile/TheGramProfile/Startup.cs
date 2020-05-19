@@ -10,6 +10,7 @@ using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
 using TheGramPost.EventBus;
 using TheGramPost.Helpers;
+using TheGramProfile.Helpers;
 using TheGramProfile.Repository;
 using TheGramProfile.Services;
 

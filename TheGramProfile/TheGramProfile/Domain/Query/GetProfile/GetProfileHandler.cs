@@ -1,6 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
+using TheGramProfile.Domain.DTO.Response;
 using TheGramProfile.Domain.Models.DTO;
 using TheGramProfile.Services;
 
