@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using NLog;
+using TheGramProfile.Helpers;
 
 namespace TheGramPost.Helpers
 {

@@ -1,41 +1,46 @@
 using System;
 using System.Threading.Tasks;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NLog;
-using TheGramProfile.Properties.Models;
-using TheGramProfile.Properties.Models.DTO;
-using TheGramProfile.Services;
+using TheGramProfile.Domain.Commands.CreateProfile;
+using TheGramProfile.Domain.DTO.Request;
+using TheGramProfile.Domain.Query.GetProfile;
 
 namespace TheGramProfile.Controllers
 {
+    [Route("api/profile")]
     public class ProfileController : AbstractProfileController
     {
 
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-        private readonly IProfileService _profileService;
-        public ProfileController(IProfileService profileService)
+        private readonly IMediator _mediator;
+        public ProfileController(IMediator mediator)
         {
-            _profileService = profileService;
+            _mediator = mediator;
         }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateProfile([FromBody] CreateProfileRequest request)
+        {
+            var result = await _mediator.Send(new CreateProfileCommand(request));
+            if(result == null) return new ConflictResult();
+            return new CreatedResult(result.Id,result);
+        }      
+        
         [HttpGet("{userId}")]
-        public async Task<UserProfile> GetProfile(string userId)
+        [Authorize]
+        public async Task<IActionResult> GetProfile(string userId)
         {
-            return await _profileService.GetUser(userId);
-
+            var result = await _mediator.Send(new GetProfileQuery(userId));
+            if(result == null) return new NotFoundResult();
+            return new OkObjectResult(result);
         }
-
-        [HttpPost("{userId}")]
-        public async Task<ActionResult> CreateProfile(string userId, [FromBody] CreateProfileDTO createProfileDto)
-        {
-            UserProfile createdProfile = new UserProfile
-            {
-                UserName = createProfileDto.Username,
-                Email = createProfileDto.Email
-            };
-            return new OkResult();
-        }
+        
 
         [HttpPut("{userId}")]
+        [Authorize]
         public Task<ActionResult> UpdateProfile(string userId)
         {
             throw new NotImplementedException();

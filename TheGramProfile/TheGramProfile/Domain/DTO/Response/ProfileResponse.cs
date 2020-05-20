@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
+using TheGramProfile.Domain.Models.DTO;
 
-namespace TheGramProfile.Properties.Models
+namespace TheGramProfile.Domain.DTO.Response
 {
-    public class UserProfile
+    public class ProfileResponse
     {
-        public long Id { get; set; }
         public string UserId { get; set; } = "";
         public string Email { get; set; }= "";
         public string FirstName { get; set; }= "";
@@ -17,5 +17,8 @@ namespace TheGramProfile.Properties.Models
         public List<string> Followers { get; set; } = new List<string>();
         [NotMapped]
         public List<string> Following { get; set; } = new List<string>();
+        
+        [NotMapped]
+        public List<PostPreviewResponse> Posts = new List<PostPreviewResponse>();
     }
 }

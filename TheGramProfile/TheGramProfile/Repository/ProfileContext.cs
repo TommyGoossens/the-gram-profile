@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using TheGramProfile.Properties.Models;
+using TheGramProfile.Domain.Models;
 
 namespace TheGramProfile.Repository
 {
