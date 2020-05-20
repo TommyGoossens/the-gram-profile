@@ -16,7 +16,7 @@ namespace TheGramProfile.Services
     public class ProfileService : IProfileService
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-
+        private static bool _dataIsCreated = false;
         private readonly IMediator _mediator;
         private readonly ProfileContext _repo;
         private readonly IUserContextHelper _userContext;
@@ -25,7 +25,11 @@ namespace TheGramProfile.Services
             _mediator = mediator;
             _repo = repo;
             _userContext = userContextHelper;
-            AddTempUser();
+            if (!_dataIsCreated)
+            {
+                AddTempUser();    
+            }
+            
         }
 
         public async Task<ProfileResponse> GetUser(string id)
@@ -258,6 +262,7 @@ namespace TheGramProfile.Services
             };
             await _repo.Profiles.AddRangeAsync(list);
             await _repo.SaveChangesAsync();
+            _dataIsCreated = true;
         }
     }
 }
