@@ -75,15 +75,27 @@ namespace TheGramProfile.Services
             return new ProfileCreatedResponse(user.UserId);
         }
 
-        public async Task<List<ProfileSearchResult>> QueryProfiles(string searchTerm)
+        public async Task<PaginatedList<ProfileSearchResult>> QueryProfiles(string searchTerm, int pageNumber)
         {
-            var result = await _repo.Profiles.Where(p => p.UserName.Contains(searchTerm)).Select(profile =>
+            var result = await PaginatedList<ProfileSearchResult>
+                .CreateAsync(_repo.Profiles
+                        .Where(p => p.UserName.Contains(searchTerm))
+                        .Select(profile => new ProfileSearchResult
+                        {
+                            UserId = profile.UserId,
+                            UserName = profile.UserName,
+                            ProfilePictureURL = profile.ProfilePictureURL
+                        }).AsNoTracking(),pageNumber
+                    ,
+                    1);
+            
+            /*var result = await _repo.Profiles.Where(p => p.UserName.Contains(searchTerm)).Select(profile =>
                 new ProfileSearchResult
                 {
                     UserId = profile.UserId,
                     UserName = profile.UserName,
                     ProfilePictureURL = profile.ProfilePictureURL
-                }).Take(10).ToListAsync();
+                }).Take(10).ToListAsync();*/
             return result;
         }
 

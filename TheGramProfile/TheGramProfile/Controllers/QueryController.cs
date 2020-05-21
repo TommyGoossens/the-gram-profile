@@ -3,7 +3,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NLog;
-using TheGramProfile.Domain.Query.GetProfile;
+using TheGramProfile.Domain.DTO.Request;
 using TheGramProfile.Domain.Query.SearchProfile;
 
 namespace TheGramProfile.Controllers
@@ -24,11 +24,11 @@ namespace TheGramProfile.Controllers
         {
             return "working fine";
         }
-        [HttpGet("{searchTerm}")]
+        [HttpPost]
         [Authorize]
-        public async Task<IActionResult> QueryProfiles(string searchTerm)
+        public async Task<IActionResult> QueryProfiles([FromBody] QueryProfilesRequest request)
         {
-            var result = await _mediator.Send(new SearchProfileQuery(searchTerm));
+            var result = await _mediator.Send(new SearchProfileQuery(request));
             if (result == null) return new NotFoundResult();
             return new OkObjectResult(result);
         }
