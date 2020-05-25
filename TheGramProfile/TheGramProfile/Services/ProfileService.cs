@@ -34,16 +34,8 @@ namespace TheGramProfile.Services
 
         public async Task<ProfileResponse> GetUser(string id)
         {
-            var token = await _userContext.GetAuthToken();
-            
-            if (!id.Equals(_userContext.GetUserId()))
-            {
-                Logger.Info("UserId param {0} is not the same as the auth userId {1}",id,_userContext.GetUserId());
-                return null;
-            }
             Logger.Info("Getting posts");
-            var rpcPosts =  await _mediator.Send(new GetPostPreviewsQuery(id));
-            
+            var rpcPosts =  _mediator.Send(new GetPostPreviewsQuery(id));
             var result = await _repo.Profiles.Where(p => p.UserId.Equals(id)).Select(profile => new ProfileResponse
             {
                 UserId = profile.UserId,
@@ -54,8 +46,8 @@ namespace TheGramProfile.Services
                 ProfilePictureURL = profile.ProfilePictureURL,
                 Followers = profile.Followers,
                 Following = profile.Following,
-                Posts = rpcPosts
-            }).FirstOrDefaultAsync();
+            }).AsNoTracking().FirstOrDefaultAsync();
+            result.Posts = await rpcPosts;
             return result;
         }
 
@@ -75,15 +67,20 @@ namespace TheGramProfile.Services
             return new ProfileCreatedResponse(user.UserId);
         }
 
-        public async Task<List<ProfileSearchResult>> QueryProfiles(string searchTerm)
+        public async Task<PaginatedList<ProfileSearchResult>> QueryProfiles(string searchTerm, int pageNumber)
         {
-            var result = await _repo.Profiles.Where(p => p.UserName.Contains(searchTerm)).Select(profile =>
-                new ProfileSearchResult
-                {
-                    UserId = profile.UserId,
-                    UserName = profile.UserName,
-                    ProfilePictureURL = profile.ProfilePictureURL
-                }).Take(10).ToListAsync();
+            var result = await PaginatedList<ProfileSearchResult>
+                .CreateAsync(_repo.Profiles
+                        .Where(p => p.UserName.Contains(searchTerm))
+                        .Select(profile => new ProfileSearchResult
+                        {
+                            UserId = profile.UserId,
+                            UserName = profile.UserName,
+                            ProfilePictureURL = profile.ProfilePictureURL
+                        })
+                        .AsNoTracking(),
+                    pageNumber,
+                    10);
             return result;
         }
 
