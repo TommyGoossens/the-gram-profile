@@ -11,7 +11,7 @@ using TheGramProfile.Domain.Query.GetProfile;
 namespace TheGramProfile.Controllers
 {
     [Route("api/profile")]
-    public class ProfileController : AbstractProfileController
+    public class ProfileController : ControllerBase
     {
 
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
@@ -29,11 +29,11 @@ namespace TheGramProfile.Controllers
             return new CreatedResult(result.Id,result);
         }      
         
-        [HttpGet("{userId}")]
+        [HttpGet("{userName}")]
         [Authorize]
-        public async Task<IActionResult> GetProfile(string userId)
+        public async Task<IActionResult> GetProfile(string userName)
         {
-            var result = await _mediator.Send(new GetProfileQuery(userId));
+            var result = await _mediator.Send(new GetProfileQuery(userName));
             if(result == null) return new NotFoundResult();
             return new OkObjectResult(result);
         }

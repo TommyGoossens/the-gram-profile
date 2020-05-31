@@ -7,8 +7,6 @@ using NLog;
 using TheGramProfile.Domain.DTO.Request;
 using TheGramProfile.Domain.DTO.Response;
 using TheGramProfile.Domain.Models;
-using TheGramProfile.Domain.Query.GetPostPreviews;
-using TheGramProfile.Helpers;
 using TheGramProfile.Repository;
 
 namespace TheGramProfile.Services
@@ -19,24 +17,22 @@ namespace TheGramProfile.Services
         private static bool _dataIsCreated = false;
         private readonly IMediator _mediator;
         private readonly ProfileContext _repo;
-        private readonly IUserContextHelper _userContext;
-        public ProfileService(IMediator mediator,ProfileContext repo, IUserContextHelper userContextHelper)
+
+        public ProfileService(IMediator mediator, ProfileContext repo)
         {
             _mediator = mediator;
-            _repo = repo;
-            _userContext = userContextHelper;
+            _repo = repo; 
             if (!_dataIsCreated)
             {
-                AddTempUser();    
+                AddTempUser();
             }
-            
         }
 
-        public async Task<ProfileResponse> GetUser(string id)
+        public async Task<ProfileResponse> GetUser(string username)
         {
-            Logger.Info("Getting posts");
-            var rpcPosts =  _mediator.Send(new GetPostPreviewsQuery(id));
-            var result = await _repo.Profiles.Where(p => p.UserId.Equals(id)).Select(profile => new ProfileResponse
+            //var rpcPostsTask =  _mediator.Send(new GetPostPreviewsQuery(id));
+            var followersTask = GetFollowers(username);
+            var result = await _repo.Profiles.Where(p => p.UserName.Equals(username)).Select(profile => new ProfileResponse
             {
                 UserId = profile.UserId,
                 Email = profile.Email,
@@ -44,10 +40,21 @@ namespace TheGramProfile.Services
                 LastName = profile.LastName,
                 UserName = profile.UserName,
                 ProfilePictureURL = profile.ProfilePictureURL,
-                Followers = profile.Followers,
                 Following = profile.Following,
             }).AsNoTracking().FirstOrDefaultAsync();
-            result.Posts = await rpcPosts;
+            // result.Posts = await rpcPostsTask;
+            result.Followers = await followersTask;
+            return result;
+        }
+
+        private async Task<List<FollowerProfile>> GetFollowers(string username)
+        {
+            var result = await _repo.Profiles.Where(p => p.Following.Any(p => p.UserName.Equals(username))).Select(profile => new  FollowerProfile
+                {
+                    UserName = profile.UserName,
+                    ProfilePictureURL = profile.ProfilePictureURL
+                }).AsNoTracking()
+                .ToListAsync();
             return result;
         }
 
@@ -55,7 +62,7 @@ namespace TheGramProfile.Services
         {
             var user = await _repo.Profiles.Where(p => p.UserId.Equals(id)).FirstOrDefaultAsync();
             if (user != null) return null;
-            
+
             user = new UserProfile
             {
                 Email = profileRequest.Email,
@@ -84,179 +91,46 @@ namespace TheGramProfile.Services
             return result;
         }
 
+        public async Task<bool> UpdateFollowerForUser(string userName, string follower)
+        {
+            var profile = await _repo.Profiles.Where(p => p.UserName.Equals(userName)).Include(p => p.Following)
+                .FirstAsync();
+            
+            var index = profile.Following.FindIndex(f => f.UserName.Equals(follower));
+            if (index == -1)
+            {
+                var userToFollow = await _repo.Profiles.Where(p => p.UserName.Equals(follower)).Select(p => new FollowerProfile
+                    {
+                        UserName = p.UserName,
+                        ProfilePictureURL = p.ProfilePictureURL
+                    })
+                    .FirstAsync();
+                profile.Following.Add(userToFollow);
+            }
+            else {
+                profile.Following.RemoveAt(index);
+            }
+
+            _repo.Profiles.Update(profile);
+            await _repo.SaveChangesAsync();
+            
+            return index == -1;
+        }
+
         private async Task AddTempUser()
         {
-            Logger.Info("Creating temp users");
-            var list = new List<UserProfile>()
+            var list = new List<UserProfile>();
+            for (var i = 0; i < 20; i++)
             {
-                new UserProfile
+                list.Add(new UserProfile
                 {
-                    UserName = "tommy.goossens",
-                    Email = "tommygoossens@ziggo.nl",
-                    UserId = "UBh7cektzYhSu6s4s6IdEEsNfz61"
-                },
-                new UserProfile
-                {
-                    UserName = "tommy.goossens1",
-                    Email = "tommygoossens@ziggo.nl",
-                    UserId = "UBh7cektzYhSu6s4s6IdEEsNfz62"
-                },
-                new UserProfile
-                {
-                    UserName = "tommy.goossens2",
-                    Email = "tommygoossens@ziggo.nl",
-                    UserId = "UBh7cektzYhSu6s4s6IdEEsNfz62"
-                },
-                new UserProfile
-                {
-                    UserName = "tommy.goossens3",
-                    Email = "tommygoossens@ziggo.nl",
-                    UserId = "UBh7cektzYhSu6s4s6IdEEsNfz63"
-                },
-                new UserProfile
-                {
-                    UserName = "tommy.goossens4",
-                    Email = "tommygoossens@ziggo.nl",
-                    UserId = "UBh7cektzYhSu6s4s6IdEEsNfz64"
-                },
-                new UserProfile
-                {
-                    UserName = "tommy.goossens5",
-                    Email = "tommygoossens@ziggo.nl",
-                    UserId = "UBh7cektzYhSu6s4s6IdEEsNfz65"
-                },
-                new UserProfile
-                {
-                    UserName = "jan.goossens",
-                    Email = "tommygoossens@ziggo.nl",
-                    UserId = "UBh7cektzYhSu6s4s6IdEEsNfz66"
-                },
-                new UserProfile
-                {
-                    UserName = "tommy.goossens",
-                    Email = "tommygoossens@ziggo.nl",
-                    UserId = "UBh7cektzYhSu6s4s6IdEEsNfz61"
-                },
-                new UserProfile
-                {
-                    UserName = "tommy.goossens1",
-                    Email = "tommygoossens@ziggo.nl",
-                    UserId = "UBh7cektzYhSu6s4s6IdEEsNfz62"
-                },
-                new UserProfile
-                {
-                    UserName = "tommy.goossens2",
-                    Email = "tommygoossens@ziggo.nl",
-                    UserId = "UBh7cektzYhSu6s4s6IdEEsNfz62"
-                },
-                new UserProfile
-                {
-                    UserName = "tommy.goossens3",
-                    Email = "tommygoossens@ziggo.nl",
-                    UserId = "UBh7cektzYhSu6s4s6IdEEsNfz63"
-                },
-                new UserProfile
-                {
-                    UserName = "tommy.goossens4",
-                    Email = "tommygoossens@ziggo.nl",
-                    UserId = "UBh7cektzYhSu6s4s6IdEEsNfz64"
-                },
-                new UserProfile
-                {
-                    UserName = "tommy.goossens5",
-                    Email = "tommygoossens@ziggo.nl",
-                    UserId = "UBh7cektzYhSu6s4s6IdEEsNfz65"
-                },
-                new UserProfile
-                {
-                    UserName = "jan.goossens",
-                    Email = "tommygoossens@ziggo.nl",
-                    UserId = "UBh7cektzYhSu6s4s6IdEEsNfz66"
-                },
-                new UserProfile
-                {
-                    UserName = "tommy.goossens",
-                    Email = "tommygoossens@ziggo.nl",
-                    UserId = "UBh7cektzYhSu6s4s6IdEEsNfz61"
-                },
-                new UserProfile
-                {
-                    UserName = "tommy.goossens1",
-                    Email = "tommygoossens@ziggo.nl",
-                    UserId = "UBh7cektzYhSu6s4s6IdEEsNfz62"
-                },
-                new UserProfile
-                {
-                    UserName = "tommy.goossens2",
-                    Email = "tommygoossens@ziggo.nl",
-                    UserId = "UBh7cektzYhSu6s4s6IdEEsNfz62"
-                },
-                new UserProfile
-                {
-                    UserName = "tommy.goossens3",
-                    Email = "tommygoossens@ziggo.nl",
-                    UserId = "UBh7cektzYhSu6s4s6IdEEsNfz63"
-                },
-                new UserProfile
-                {
-                    UserName = "tommy.goossens4",
-                    Email = "tommygoossens@ziggo.nl",
-                    UserId = "UBh7cektzYhSu6s4s6IdEEsNfz64"
-                },
-                new UserProfile
-                {
-                    UserName = "tommy.goossens5",
-                    Email = "tommygoossens@ziggo.nl",
-                    UserId = "UBh7cektzYhSu6s4s6IdEEsNfz65"
-                },
-                new UserProfile
-                {
-                    UserName = "jan.goossens",
-                    Email = "tommygoossens@ziggo.nl",
-                    UserId = "UBh7cektzYhSu6s4s6IdEEsNfz66"
-                },new UserProfile
-                {
-                    UserName = "tommy.goossens",
-                    Email = "tommygoossens@ziggo.nl",
-                    UserId = "UBh7cektzYhSu6s4s6IdEEsNfz61"
-                },
-                new UserProfile
-                {
-                    UserName = "tommy.goossens1",
-                    Email = "tommygoossens@ziggo.nl",
-                    UserId = "UBh7cektzYhSu6s4s6IdEEsNfz62"
-                },
-                new UserProfile
-                {
-                    UserName = "tommy.goossens2",
-                    Email = "tommygoossens@ziggo.nl",
-                    UserId = "UBh7cektzYhSu6s4s6IdEEsNfz62"
-                },
-                new UserProfile
-                {
-                    UserName = "tommy.goossens3",
-                    Email = "tommygoossens@ziggo.nl",
-                    UserId = "UBh7cektzYhSu6s4s6IdEEsNfz63"
-                },
-                new UserProfile
-                {
-                    UserName = "tommy.goossens4",
-                    Email = "tommygoossens@ziggo.nl",
-                    UserId = "UBh7cektzYhSu6s4s6IdEEsNfz64"
-                },
-                new UserProfile
-                {
-                    UserName = "tommy.goossens5",
-                    Email = "tommygoossens@ziggo.nl",
-                    UserId = "UBh7cektzYhSu6s4s6IdEEsNfz65"
-                },
-                new UserProfile
-                {
-                    UserName = "jan.goossens",
-                    Email = "tommygoossens@ziggo.nl",
-                    UserId = "UBh7cektzYhSu6s4s6IdEEsNfz66"
-                }
-            };
+                    UserName = $"tommy.goossens{i}",
+                    Email = $"tommygoossens{i}@ziggo.nl",
+                    UserId = $"UBh7cektzYhSu6s4s6IdEEsNfz6{i}",
+                    ProfilePictureURL = "profilepic"
+                });
+            }
+
             await _repo.Profiles.AddRangeAsync(list);
             await _repo.SaveChangesAsync();
             _dataIsCreated = true;
