@@ -16,7 +16,7 @@ namespace TheGramProfile.Domain.Commands.UpdateFollower
 
         public async Task<bool> Handle(UpdateFollowerCommand request, CancellationToken cancellationToken)
         {
-         return await _profileService.UpdateFollowerForUser(request.UserName, request.UserToFollow);
+         return await _profileService.UpdateFollowerForUser(request.UserId, request.UserIdToFollow);
         }
     }
 }

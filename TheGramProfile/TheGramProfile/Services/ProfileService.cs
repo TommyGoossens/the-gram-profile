@@ -28,11 +28,11 @@ namespace TheGramProfile.Services
             }
         }
 
-        public async Task<ProfileResponse> GetUser(string username)
+        public async Task<ProfileResponse> GetUser(string userId)
         {
             //var rpcPostsTask =  _mediator.Send(new GetPostPreviewsQuery(id));
-            var followersTask = GetFollowers(username);
-            var result = await _repo.Profiles.Where(p => p.UserName.Equals(username)).Select(profile => new ProfileResponse
+            var followersTask = GetFollowers(userId);
+            var result = await _repo.Profiles.Where(p => p.UserId.Equals(userId)).Select(profile => new ProfileResponse
             {
                 UserId = profile.UserId,
                 Email = profile.Email,
@@ -47,10 +47,11 @@ namespace TheGramProfile.Services
             return result;
         }
 
-        private async Task<List<FollowerProfile>> GetFollowers(string username)
+        private async Task<List<FollowerProfile>> GetFollowers(string userId)
         {
-            var result = await _repo.Profiles.Where(p => p.Following.Any(p => p.UserName.Equals(username))).Select(profile => new  FollowerProfile
+            var result = await _repo.Profiles.Where(p => p.Following.Any(p => p.UserName.Equals(userId))).Select(profile => new  FollowerProfile
                 {
+                    UserId = profile.UserId,
                     UserName = profile.UserName,
                     ProfilePictureURL = profile.ProfilePictureURL
                 }).AsNoTracking()
@@ -91,15 +92,15 @@ namespace TheGramProfile.Services
             return result;
         }
 
-        public async Task<bool> UpdateFollowerForUser(string userName, string follower)
+        public async Task<bool> UpdateFollowerForUser(string userId, string followerId)
         {
-            var profile = await _repo.Profiles.Where(p => p.UserName.Equals(userName)).Include(p => p.Following)
+            var profile = await _repo.Profiles.Where(p => p.UserName.Equals(userId)).Include(p => p.Following)
                 .FirstAsync();
             
-            var index = profile.Following.FindIndex(f => f.UserName.Equals(follower));
+            var index = profile.Following.FindIndex(f => f.UserName.Equals(followerId));
             if (index == -1)
             {
-                var userToFollow = await _repo.Profiles.Where(p => p.UserName.Equals(follower)).Select(p => new FollowerProfile
+                var userToFollow = await _repo.Profiles.Where(p => p.UserName.Equals(followerId)).Select(p => new FollowerProfile
                     {
                         UserName = p.UserName,
                         ProfilePictureURL = p.ProfilePictureURL

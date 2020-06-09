@@ -29,11 +29,11 @@ namespace TheGramProfile.Controllers
             return new CreatedResult(result.Id,result);
         }      
         
-        [HttpGet("{userName}")]
+        [HttpGet("{userId}")]
         [Authorize]
-        public async Task<IActionResult> GetProfile(string userName)
+        public async Task<IActionResult> GetProfile(string userId)
         {
-            var result = await _mediator.Send(new GetProfileQuery(userName));
+            var result = await _mediator.Send(new GetProfileQuery(userId));
             if(result == null) return new NotFoundResult();
             return new OkObjectResult(result);
         }

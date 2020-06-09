@@ -2,13 +2,13 @@ namespace TheGramProfile.Domain.DTO.Request
 {
     public class UpdateFollowerRequest
     {
-        public string UserName { get; set; }
-        public string UserToFollow { get; set; }
+        public string UserId { get; set; }
+        public string UserIdToFollow { get; set; }
 
-        public UpdateFollowerRequest(string userName, string userToFollow)
+        public UpdateFollowerRequest(string userId, string userIdToFollow)
         {
-            UserName = userName;
-            UserToFollow = userToFollow;
+            UserId = userId;
+            UserIdToFollow = userIdToFollow;
         }
     }
 }
