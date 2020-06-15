@@ -1,12 +1,17 @@
- version: 2.1
+version: 2.1
+jobs:
+  build:
+    machine: true
+    steps:
+      - checkout
+      # start proprietary DB using private Docker image
+      # with credentials stored in the UI
+      - run: |
+          echo "$DockerPassword" | docker login --username $DockerUsername --password-stdin
+          docker run -d --name db tommygoossens/the-gram-profile:latest
 
- orbs:
-  win: circleci/windows@2.2.0
+      # build the application image
+      - run: docker build -t tommygoossens/the-gram-profile:latest:$CIRCLE_BRANCH .
 
- jobs:
-   build:
-     executor: win/default     
-    
-     steps:
-       - checkout
-       - run: dotnet build
+      # deploy the image
+      - run: docker push tommygoossens/the-gram-profile:latest:$CIRCLE_BRANCH
