@@ -26,8 +26,6 @@ spec:
       app: the-gram-profile
   template:
     metadata:
-      annotations:
-        consul.hashicorp.com/connect-inject: "true"
       labels:
         app: the-gram-profile
     spec:
