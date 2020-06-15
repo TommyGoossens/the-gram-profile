@@ -19,7 +19,11 @@ namespace TheGramProfile.EventBus
 
         public RabbitRPC(string queueName)
         {
-            var factory = new ConnectionFactory(){HostName = "localhost"};
+            var factory = new ConnectionFactory()
+            {
+                HostName = "rabbitmq-service",
+                Port = 7000
+            };
             var conn = factory.CreateConnection();
             var channel = conn.CreateModel();
             _queueName = queueName;
@@ -41,7 +45,7 @@ namespace TheGramProfile.EventBus
 
         private void SetupConnection()
         {
-            _replyQueueName = IModelExensions.QueueDeclare(_channel).QueueName;
+            _replyQueueName = _channel.QueueDeclare().QueueName;
             _consumer = new EventingBasicConsumer(_channel);
             _props = _channel.CreateBasicProperties();
             var correlationId = Guid.NewGuid().ToString();

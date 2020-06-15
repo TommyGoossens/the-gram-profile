@@ -24,10 +24,11 @@ namespace TheGramPost.EventBus
         public RabbitMqPersistentConn(IServiceProvider serviceProvider)
         {
             //_connectionFactory = factory ?? throw new ArgumentNullException(nameof(factory));
-            
+
             _connectionFactory = new ConnectionFactory()
             {
-                HostName = "localhost"
+                HostName = "rabbitmq-service",
+                Port = 7000
             };
             _serviceProvider = serviceProvider;
             if (!IsConnected)
@@ -46,7 +47,7 @@ namespace TheGramPost.EventBus
             }
             catch (BrokerUnreachableException e)
             {
-                Logger.Error("RabbitMQ couldn't connect, retrying in 5 seconds",e);
+                Logger.Error("RabbitMQ couldn't connect, retrying in 5 seconds", e);
                 Thread.Sleep(5000);
                 _connection = _connectionFactory.CreateConnection();
             }
@@ -56,8 +57,10 @@ namespace TheGramPost.EventBus
                 _connection.ConnectionShutdown += OnConnectionShutdown;
                 _connection.CallbackException += OnCallbackException;
                 _connection.ConnectionBlocked += OnConnectionBlocked;
-                
-                Logger.Info("RabbitMQ persistent connection acquired a connection {0} and is subscribed to failure events",_connection.Endpoint.HostName);
+
+                Logger.Info(
+                    "RabbitMQ persistent connection acquired a connection {0} and is subscribed to failure events",
+                    _connection.Endpoint.HostName);
                 return true;
             }
             else
@@ -71,7 +74,8 @@ namespace TheGramPost.EventBus
         {
             if (IsConnected) return _connection.CreateModel();
             Logger.Error("No RabbitMQ connections are available to allow the creation of a model");
-            throw new InvalidOperationException("No RabbitMQ connections are available to allow the creation of a model");
+            throw new InvalidOperationException(
+                "No RabbitMQ connections are available to allow the creation of a model");
         }
 
         public void CreateConsumerChannel()
@@ -81,8 +85,8 @@ namespace TheGramPost.EventBus
                 Logger.Error("No connection while creating consumer channels, retrying.");
                 TryConnect();
             }
-            
-            _eventBusService = new EventBusRabbitMqImpl(this,_serviceProvider,RabbitMqChannels.GetPostPreviews);
+
+            _eventBusService = new EventBusRabbitMqImpl(this, _serviceProvider, RabbitMqChannels.GetPostPreviews);
             _eventBusService.CreateConsumerChannel();
         }
 
@@ -93,9 +97,10 @@ namespace TheGramPost.EventBus
                 Logger.Error("Connection was already disposed when disconnecting.");
                 return;
             }
+
             Dispose();
         }
-        
+
         private void Dispose()
         {
             if (_isDisposed) return;
@@ -111,7 +116,7 @@ namespace TheGramPost.EventBus
                 Console.WriteLine(ex.ToString());
             }
         }
-        
+
         private void OnConnectionBlocked(object sender, ConnectionBlockedEventArgs e)
         {
             if (_isDisposed) return;

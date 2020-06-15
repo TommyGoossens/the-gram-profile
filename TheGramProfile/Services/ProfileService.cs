@@ -7,6 +7,7 @@ using NLog;
 using TheGramProfile.Domain.DTO.Request;
 using TheGramProfile.Domain.DTO.Response;
 using TheGramProfile.Domain.Models;
+using TheGramProfile.Domain.Query.GetPostPreviews;
 using TheGramProfile.Repository;
 
 namespace TheGramProfile.Services
@@ -21,7 +22,7 @@ namespace TheGramProfile.Services
         public ProfileService(IMediator mediator, ProfileContext repo)
         {
             _mediator = mediator;
-            _repo = repo; 
+            _repo = repo;
             if (!_dataIsCreated)
             {
                 AddTempUser();
@@ -30,7 +31,7 @@ namespace TheGramProfile.Services
 
         public async Task<ProfileResponse> GetUser(string userId)
         {
-            //var rpcPostsTask =  _mediator.Send(new GetPostPreviewsQuery(id));
+            var rpcPostsTask = _mediator.Send(new GetPostPreviewsQuery(userId));
             var followersTask = GetFollowers(userId);
             var result = await _repo.Profiles.Where(p => p.UserId.Equals(userId)).Select(profile => new ProfileResponse
             {
@@ -42,19 +43,20 @@ namespace TheGramProfile.Services
                 ProfilePictureURL = profile.ProfilePictureURL,
                 Following = profile.Following,
             }).AsNoTracking().FirstOrDefaultAsync();
-            // result.Posts = await rpcPostsTask;
+            result.Posts = await rpcPostsTask;
             result.Followers = await followersTask;
             return result;
         }
 
         private async Task<List<FollowerProfile>> GetFollowers(string userId)
         {
-            var result = await _repo.Profiles.Where(p => p.Following.Any(p => p.UserName.Equals(userId))).Select(profile => new  FollowerProfile
-                {
-                    UserId = profile.UserId,
-                    UserName = profile.UserName,
-                    ProfilePictureURL = profile.ProfilePictureURL
-                }).AsNoTracking()
+            var result = await _repo.Profiles.Where(p => p.Following.Any(p => p.UserName.Equals(userId))).Select(
+                    profile => new FollowerProfile
+                    {
+                        UserId = profile.UserId,
+                        UserName = profile.UserName,
+                        ProfilePictureURL = profile.ProfilePictureURL
+                    }).AsNoTracking()
                 .ToListAsync();
             return result;
         }
@@ -96,25 +98,27 @@ namespace TheGramProfile.Services
         {
             var profile = await _repo.Profiles.Where(p => p.UserName.Equals(userId)).Include(p => p.Following)
                 .FirstAsync();
-            
+
             var index = profile.Following.FindIndex(f => f.UserName.Equals(followerId));
             if (index == -1)
             {
-                var userToFollow = await _repo.Profiles.Where(p => p.UserName.Equals(followerId)).Select(p => new FollowerProfile
-                    {
-                        UserName = p.UserName,
-                        ProfilePictureURL = p.ProfilePictureURL
-                    })
+                var userToFollow = await _repo.Profiles.Where(p => p.UserName.Equals(followerId)).Select(p =>
+                        new FollowerProfile
+                        {
+                            UserName = p.UserName,
+                            ProfilePictureURL = p.ProfilePictureURL
+                        })
                     .FirstAsync();
                 profile.Following.Add(userToFollow);
             }
-            else {
+            else
+            {
                 profile.Following.RemoveAt(index);
             }
 
             _repo.Profiles.Update(profile);
             await _repo.SaveChangesAsync();
-            
+
             return index == -1;
         }
 

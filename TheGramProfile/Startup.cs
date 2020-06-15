@@ -29,6 +29,7 @@ namespace TheGramProfile
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddFirebaseAuthentication(Configuration["Firebase:Issuer"], Configuration["Firebase:Audience"]);
+
             services.AddMediatR(Assembly.GetExecutingAssembly());
             services.AddMemoryCache();
             services.AddScoped<IProfileService, ProfileService>();
@@ -56,7 +57,8 @@ namespace TheGramProfile
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
         }
     }
-    
+
+
     public static class ApplicationBuilderExtensions
     {
         public static RabbitMqPersistentConn Listener { get; set; }
@@ -72,7 +74,7 @@ namespace TheGramProfile
 
         private static void OnStarted()
         {
-           // Listener.CreateConsumerChannel();
+            // Listener.CreateConsumerChannel();
         }
 
         private static void OnStopping()

@@ -22,6 +22,7 @@ namespace TheGramProfile.Controllers
         [HttpGet]
         public string Test()
         {
+            Logger.Info("Working fine");
             return "working fine";
         }
         [HttpPost]
