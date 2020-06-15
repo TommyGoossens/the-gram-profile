@@ -40,7 +40,8 @@ jobs:
       - gcp-gke/init
       # Update a deployment Docker image.
       - gcp-gke/rollout-image:
-          deployment: the-gram-k8s
+          cluster: the-gram-k8s
+          deployment: the-gram-profile
           container: the-gram-profile
           image: gcr.io/$GCP_PROJECT_ID/the-gram-profile:v2.4 # change version when updating
 workflows:
