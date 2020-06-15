@@ -39,10 +39,12 @@ jobs:
       # Initialize the `gcloud` CLI.
       - gcp-gke/init
       # Update a deployment Docker image.
-      - gcp-gke/rollout-image:
-          deployment: the-gram-k8s
-          container: the-gram-profile
-          image: gcr.io/$GCP_PROJECT_ID/the-gram-profile:v2.4 # change version when updating
+      - run:
+          command: kubectl set image deployments the-gram-profile the-gram-profile=gcr.io/$GCP_PROJECT_ID/the-gram-profile:v2.4
+      # - gcp-gke/rollout-image:
+      #     deployment: the-gram-profile
+      #     container: the-gram-profile
+      #     image: gcr.io/$GCP_PROJECT_ID/the-gram-profile:v2.4 # change version when updating
 workflows:
   build_update_deploy:
     jobs:
