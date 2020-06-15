@@ -1,12 +1,12 @@
 version: 2.1
 orbs:
-  win: circleci/windows@1.0.0
+  windows: circleci/windows@2.2.0
   gcp-gke: circleci/gcp-gke@0.1.0
   gcr: circleci/gcp-gcr@0.0.2
 jobs:
   build:
-    docker:
-      - image: jetcipher/circleci-dotnet-core:3.1
+    executor:
+      name: windows/default
     steps:
       - checkout
       - run:
@@ -15,7 +15,7 @@ jobs:
           working_directory: TheGramProfile
       - run:
           name: Build
-          command: dotnet build -c Release
+          command: dotnet build -c Development
           working_directory: TheGramProfile
   BuildPushImageDocker:
     description: Build and push image to Google Container Registry
