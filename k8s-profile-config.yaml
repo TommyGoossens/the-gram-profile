@@ -33,7 +33,7 @@ spec:
     spec:
       containers:
         - name: the-gram-profile
-          image: tommygoossens/the-gram-profile:v2.3
+          image: gcr.io/s62-1-278920/the-gram-profile:v2.3
           ports:
             - containerPort: 80
               name: http
