@@ -1,0 +1,12 @@
+steps:
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["build", "-t", "gcr.io/s62-1-278920/the-gram-profile:latest", "."]
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["push", "gcr.io/s62-1-278920/the-gram-profile:latest"]
+  - name: "gcr.io/cloud-builders/gke-deploy"
+    args:
+      - run
+      - --filename=k8s-gateway-config.yaml
+      - --image=gcr.io/s62-1-278920/the-gram-profile:latest
+      - --location=europe-west1-b
+      - --cluster=the-gram-k8s
