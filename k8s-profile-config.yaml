@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: the-gram-profile
+  name: the-gram
 ---
 apiVersion: v1
 kind: Service
@@ -35,4 +35,4 @@ spec:
           ports:
             - containerPort: 80
               name: http
-      serviceAccountName: the-gram-profile
+      serviceAccountName: the-gram

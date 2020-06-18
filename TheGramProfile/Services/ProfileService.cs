@@ -96,13 +96,13 @@ namespace TheGramProfile.Services
 
         public async Task<bool> UpdateFollowerForUser(string userId, string followerId)
         {
-            var profile = await _repo.Profiles.Where(p => p.UserName.Equals(userId)).Include(p => p.Following)
+            var profile = await _repo.Profiles.Where(p => p.UserId.Equals(userId)).Include(p => p.Following)
                 .FirstAsync();
 
             var index = profile.Following.FindIndex(f => f.UserName.Equals(followerId));
             if (index == -1)
             {
-                var userToFollow = await _repo.Profiles.Where(p => p.UserName.Equals(followerId)).Select(p =>
+                var userToFollow = await _repo.Profiles.Where(p => p.UserId.Equals(followerId)).Select(p =>
                         new FollowerProfile
                         {
                             UserName = p.UserName,
