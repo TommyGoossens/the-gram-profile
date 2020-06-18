@@ -10,5 +10,6 @@ namespace TheGramProfile.Services
         Task<ProfileResponse> GetUser(string id);
         Task<ProfileCreatedResponse> CreateUser(string id, CreateProfileRequest profileRequest);
         Task<PaginatedList<ProfileSearchResult>> QueryProfiles(string searchTerm,int pageNumber);
+        Task<bool> UpdateFollowerForUser(string userName, string follower);
     }
 }

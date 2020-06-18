@@ -1,0 +1,21 @@
+steps:
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      ["build", "-t", "gcr.io/s62-1-278920/the-gram-profile:$SHORT_SHA", "."]
+  - name: gcr.io/$PROJECT_ID/sonar-scanner:latest
+    args:
+      - "-Dsonar.host.url=https://sonarcloud.io"
+      - "-Dsonar.login=${_SONAR_KEY_TOMMY}"
+      - "-Dsonar.organization=tommygoossens"
+      - "-Dsonar.projectKey=TommyGoossens_the-gram-profile"
+      - "-Dsonar.projectBaseDir=TheGramProfile"
+      - "-Dsonar.branch.name=develop"
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["push", "gcr.io/s62-1-278920/the-gram-profile:$SHORT_SHA"]
+  - name: "gcr.io/cloud-builders/gke-deploy"
+    args:
+      - run
+      - --filename=k8s-profile-config.yaml
+      - --image=gcr.io/s62-1-278920/the-gram-profile:$SHORT_SHA
+      - --location=europe-west1-b
+      - --cluster=the-gram-k8s

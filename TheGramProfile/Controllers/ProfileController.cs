@@ -11,7 +11,7 @@ using TheGramProfile.Domain.Query.GetProfile;
 namespace TheGramProfile.Controllers
 {
     [Route("api/profile")]
-    public class ProfileController : AbstractProfileController
+    public class ProfileController : ControllerBase
     {
 
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
