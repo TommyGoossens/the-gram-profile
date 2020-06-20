@@ -6,13 +6,10 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
-using TheGramPost.EventBus;
 using TheGramPost.Helpers;
 using TheGramProfile.Helpers;
 using TheGramProfile.Repository;
-using TheGramProfile.Services;
 
 namespace TheGramProfile
 {
@@ -32,13 +29,12 @@ namespace TheGramProfile
 
             services.AddMediatR(Assembly.GetExecutingAssembly());
             services.AddMemoryCache();
-            services.AddScoped<IProfileService, ProfileService>();
+            
             services.AddScoped<IUserContextHelper, UserContextHelper>();
             services.AddHttpContextAccessor();
-            services.AddSingleton<RabbitMqPersistentConn>();
             services.AddDbContext<ProfileContext>(builder =>
             {
-                builder.UseInMemoryDatabase(Configuration.GetConnectionString("ProfileContext"));
+                builder.UseMySQL(Configuration.GetConnectionString("ProfileContext"));
             });
             services.AddControllers().AddNewtonsoftJson(options =>
             {
@@ -52,34 +48,7 @@ namespace TheGramProfile
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
-
-            app.UseRabbitListener();
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
-        }
-    }
-
-
-    public static class ApplicationBuilderExtensions
-    {
-        public static RabbitMqPersistentConn Listener { get; set; }
-
-        public static IApplicationBuilder UseRabbitListener(this IApplicationBuilder app)
-        {
-            Listener = app.ApplicationServices.GetService<RabbitMqPersistentConn>();
-            var life = app.ApplicationServices.GetService<IHostApplicationLifetime>();
-            life.ApplicationStarted.Register(OnStarted);
-            life.ApplicationStopping.Register(OnStopping);
-            return app;
-        }
-
-        private static void OnStarted()
-        {
-            // Listener.CreateConsumerChannel();
-        }
-
-        private static void OnStopping()
-        {
-            Listener.Disconnect();
         }
     }
 }

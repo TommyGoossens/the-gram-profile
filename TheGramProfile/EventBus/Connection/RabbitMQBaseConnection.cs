@@ -5,89 +5,69 @@ using NLog;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
-using TheGramProfile.EventBus;
 using TheGramProfile.Properties;
 
-namespace TheGramPost.EventBus
+namespace TheGramProfile.EventBus.Connection
 {
-    public class RabbitMqPersistentConn : IRabbitMQPersistentConn
+    public abstract class RabbitMQBaseConnection : IRabbitMQBaseConnection
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-
-        private readonly IConnectionFactory _connectionFactory;
-        private readonly IServiceProvider _serviceProvider;
-        private IEventBusService _eventBusService;
-        private IConnection _connection;
+        
+        public bool IsConnected => Connection != null && Connection.IsOpen && !_isDisposed;
+        
         private bool _isDisposed;
-        public bool IsConnected => _connection != null && _connection.IsOpen && !_isDisposed;
-
-        public RabbitMqPersistentConn(IServiceProvider serviceProvider)
+        private readonly IConnectionFactory _connectionFactory;
+        protected IConnection Connection;
+        
+        protected RabbitMQBaseConnection()
         {
-            //_connectionFactory = factory ?? throw new ArgumentNullException(nameof(factory));
-
             _connectionFactory = new ConnectionFactory()
             {
-                HostName = "rabbitmq-service",
-                Port = 7000
+                HostName = Constants.RabbitMQHost,
+                Port = Constants.RabbitMQPort
             };
-            _serviceProvider = serviceProvider;
             if (!IsConnected)
             {
                 TryConnect();
             }
         }
-
-
+        
+        public IModel CreateModel()
+        {
+            if (IsConnected) return Connection.CreateModel();
+            Logger.Error("No RabbitMQ connections are available to allow the creation of a model");
+            throw new InvalidOperationException(
+                "No RabbitMQ connections are available to allow the creation of a model");
+        }
+        
         public bool TryConnect()
         {
             try
             {
                 Logger.Info("RabbitMQ is connecting");
-                _connection = _connectionFactory.CreateConnection();
+                Connection = _connectionFactory.CreateConnection();
             }
             catch (BrokerUnreachableException e)
             {
                 Logger.Error("RabbitMQ couldn't connect, retrying in 5 seconds", e);
                 Thread.Sleep(5000);
-                _connection = _connectionFactory.CreateConnection();
+                Connection = _connectionFactory.CreateConnection();
             }
 
             if (IsConnected)
             {
-                _connection.ConnectionShutdown += OnConnectionShutdown;
-                _connection.CallbackException += OnCallbackException;
-                _connection.ConnectionBlocked += OnConnectionBlocked;
+                Connection.ConnectionShutdown += OnConnectionShutdown;
+                Connection.CallbackException += OnCallbackException;
+                Connection.ConnectionBlocked += OnConnectionBlocked;
 
                 Logger.Info(
                     "RabbitMQ persistent connection acquired a connection {0} and is subscribed to failure events",
-                    _connection.Endpoint.HostName);
+                    Connection.Endpoint.HostName);
                 return true;
             }
-            else
-            {
-                Logger.Fatal("RabbitMQ connections could not be created and opened");
-                return false;
-            }
-        }
 
-        public IModel CreateModel()
-        {
-            if (IsConnected) return _connection.CreateModel();
-            Logger.Error("No RabbitMQ connections are available to allow the creation of a model");
-            throw new InvalidOperationException(
-                "No RabbitMQ connections are available to allow the creation of a model");
-        }
-
-        public void CreateConsumerChannel()
-        {
-            if (!IsConnected)
-            {
-                Logger.Error("No connection while creating consumer channels, retrying.");
-                TryConnect();
-            }
-
-            _eventBusService = new EventBusRabbitMqImpl(this, _serviceProvider, RabbitMqChannels.GetPostPreviews);
-            _eventBusService.CreateConsumerChannel();
+            Logger.Fatal("RabbitMQ connections could not be created and opened");
+            return false;
         }
 
         public void Disconnect()
@@ -109,7 +89,7 @@ namespace TheGramPost.EventBus
 
             try
             {
-                _connection.Dispose();
+                Connection.Dispose();
             }
             catch (IOException ex)
             {
@@ -137,5 +117,16 @@ namespace TheGramPost.EventBus
             Console.WriteLine("A RabbitMQ connection is on shutdown. Trying to re-connect...");
             TryConnect();
         }
+    }
+
+    public interface IRabbitMQBaseConnection
+    {
+        bool IsConnected { get; }
+
+        bool TryConnect();
+
+        IModel CreateModel();
+        
+        void Disconnect();
     }
 }

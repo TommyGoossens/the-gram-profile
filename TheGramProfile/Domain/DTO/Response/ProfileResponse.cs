@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using TheGramProfile.Domain.Models;
 using TheGramProfile.Domain.Models.DTO;
 
 namespace TheGramProfile.Domain.DTO.Response
@@ -13,8 +12,8 @@ namespace TheGramProfile.Domain.DTO.Response
         public string UserName { get; set; } = "";
         public string ProfilePictureURL { get; set; } = "";
 
-        public List<FollowerProfile> Followers { get; set; } = new List<FollowerProfile>();
-        public List<FollowerProfile> Following { get; set; } = new List<FollowerProfile>();
+        public int NumberOfFollowers { get; set; }
+        public int NumberOfFollowing { get; set; }
 
         public List<PostPreviewResponse> Posts = new List<PostPreviewResponse>();
     }

@@ -4,7 +4,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NLog;
-using TheGramProfile.Domain.Commands.CreateProfile;
+using TheGramProfile.Domain.Commands.CreateFirebaseUserAndProfile;
 using TheGramProfile.Domain.DTO.Request;
 using TheGramProfile.Domain.Query.GetProfile;
 
@@ -24,7 +24,7 @@ namespace TheGramProfile.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateProfile([FromBody] CreateProfileRequest request)
         {
-            var result = await _mediator.Send(new CreateProfileCommand(request));
+            var result = await _mediator.Send(new CreateFirebaseUserAndProfileCommand(request));
             if(result == null) return new ConflictResult();
             return new CreatedResult(result.Id,result);
         }      

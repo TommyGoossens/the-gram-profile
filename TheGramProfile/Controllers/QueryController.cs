@@ -4,11 +4,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NLog;
 using TheGramProfile.Domain.DTO.Request;
-using TheGramProfile.Domain.Query.SearchProfile;
+using TheGramProfile.Domain.Query.SearchPaginatedProfiles;
 
 namespace TheGramProfile.Controllers
 {
     [Route("api/profile/query")]
+    [Authorize]
     public class QueryController : ControllerBase
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
@@ -25,11 +26,12 @@ namespace TheGramProfile.Controllers
             Logger.Info("Working fine");
             return "working fine";
         }
+
         [HttpPost]
         [Authorize]
         public async Task<IActionResult> QueryProfiles([FromBody] QueryProfilesRequest request)
         {
-            var result = await _mediator.Send(new SearchProfileQuery(request));
+            var result = await _mediator.Send(new SearchPaginatedProfilesQuery(request));
             if (result == null) return new NotFoundResult();
             return new OkObjectResult(result);
         }

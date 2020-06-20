@@ -1,29 +1,29 @@
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 using TheGramProfile.Domain.Models.DTO;
-using TheGramProfile.EventBus;
+using TheGramProfile.EventBus.Channels;
+using TheGramProfile.EventBus.Requests;
 using TheGramProfile.Properties;
 
 namespace TheGramProfile.Domain.Query.GetPostPreviews
 {
     public class GetPostPreviewsHandler : IRequestHandler<GetPostPreviewsQuery,List<PostPreviewResponse>>
     {
-        private readonly RabbitRPC<List<PostPreviewResponse>> _rpcEventBus;
+        private readonly RabbitMQRemoteProcedureCall<List<PostPreviewResponse>> _rabbitRPC;
 
         public GetPostPreviewsHandler()
         {
-            _rpcEventBus = new RabbitRPC<List<PostPreviewResponse>>(RabbitMqChannels.GetPostPreviews);
+            _rabbitRPC = new RabbitMQRemoteProcedureCall<List<PostPreviewResponse>>(RabbitMqChannels.GetPostPreviews);
             
         }
 
         public async Task<List<PostPreviewResponse>> Handle(GetPostPreviewsQuery request, CancellationToken cancellationToken)
         {
-            var results =_rpcEventBus.Request<List<PostPreviewResponse>>(request.UserId);
-            _rpcEventBus.Dispose();
-            return results;
+            var response = _rabbitRPC.MakeRemoteProcedureCall<List<PostPreviewResponse>>(request.UserId, cancellationToken);
+            _rabbitRPC.Dispose();
+            return response;
         }
     }
 }

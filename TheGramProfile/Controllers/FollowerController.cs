@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using NLog;
-using TheGramProfile.Domain.Commands.UpdateFollower;
+using TheGramProfile.Domain.Commands.UpdateFollowerForUser;
 using TheGramProfile.Domain.DTO.Request;
 
 namespace TheGramProfile.Controllers
@@ -21,12 +21,7 @@ namespace TheGramProfile.Controllers
         [HttpPut]
         public async Task<IActionResult> UpdateFollowerForUser([FromBody] UpdateFollowerRequest request)
         {
-            var result = await _mediator.Send(new UpdateFollowerCommand(request));
-            if (!result)
-            {
-                return new BadRequestResult();
-            }
-
+            var result = await _mediator.Send(new UpdateFollowerForUserCommand(request.UserId,request.UserIdToFollow));
             return new OkResult();
         }
     }
